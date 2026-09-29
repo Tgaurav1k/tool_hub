@@ -1,0 +1,184 @@
+generator client {
+  provider = "prisma-client-js"
+  // Local output avoids Windows EPERM when hoisted node_modules/.prisma is locked by another Node process
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Canonical application roles; `users.role` must match `slug`.
+model Role {
+  slug        String @id
+  label       String
+  description String?
+  sortOrder   Int    @default(0)
+
+  users User[]
+
+  @@map("roles")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  name          String
+  avatarUrl     String?
+  avatarBlob    Bytes?
+  avatarMimeType String?
+  email         String   @unique
+  passwordHash  String
+  role          String   @default("user")
+  status        String   @default("pending")
+  createdById   String?
+  createdBy     User?    @relation("CreatedBy", fields: [createdById], references: [id])
+  createdUsers  User[]   @relation("CreatedBy")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  roleDefinition Role     @relation(fields: [role], references: [slug])
+  categoryAssignments CategoryAssignment[] @relation("UserCategoryAssignments")
+  assignedByMe        CategoryAssignment[] @relation("AssignedBy")
+  toolAssignments     UserToolAssignment[] @relation("UserToolAssignments")
+  toolAssignmentsAssignedBy UserToolAssignment[] @relation("ToolAssignmentAssignedBy")
+  /// Per-tool allowlist for standard (non–linked) tools within assigned categories.
+  toolAllows          UserToolAllow[] @relation("UserToolAllowUser")
+  toolAllowsGrantedBy UserToolAllow[] @relation("UserToolAllowGrantedBy")
+  activityLogs        ActivityLog[]
+  favorites           UserFavorite[]
+  notifications       Notification[]
+
+  @@map("users")
+}
+
+model Category {
+  id         String @id @default(uuid())
+  name       String @unique
+  icon       String
+  colorToken String
+  sortOrder  Int    @default(0)
+
+  tools       Tool[]
+  assignments CategoryAssignment[]
+
+  @@map("categories")
+}
+
+model Tool {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  url         String
+  icon        String
+  status      String   @default("active")
+  /// Stable key for integrations (e.g. image-generation).
+  slug        String?  @unique
+  /// When true, only users with a `UserToolAssignment` row may see/launch this tool (category access alone is not enough).
+  requiresToolAssignment Boolean @default(false)
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  activityLogs ActivityLog[]
+  userToolAssignments UserToolAssignment[]
+  userToolAllows      UserToolAllow[]
+  favoritedBy         UserFavorite[]
+
+  @@map("tools")
+}
+
+model UserToolAllow {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation("UserToolAllowUser", fields: [userId], references: [id], onDelete: Cascade)
+  toolId      String
+  tool        Tool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  grantedById String
+  grantedBy   User     @relation("UserToolAllowGrantedBy", fields: [grantedById], references: [id])
+  grantedAt   DateTime @default(now())
+
+  @@unique([userId, toolId])
+  @@map("user_tool_allowances")
+}
+
+model UserToolAssignment {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation("UserToolAssignments", fields: [userId], references: [id], onDelete: Cascade)
+  toolId       String
+  tool         Tool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  /// Role inside the linked external tool (`user` or `admin`), not Toolhub app role.
+  toolRole     String   @default("user")
+  assignedById String
+  assignedBy   User     @relation("ToolAssignmentAssignedBy", fields: [assignedById], references: [id])
+  assignedAt   DateTime @default(now())
+
+  @@unique([userId, toolId])
+  @@map("user_tool_assignments")
+}
+
+model CategoryAssignment {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation("UserCategoryAssignments", fields: [userId], references: [id], onDelete: Cascade)
+  categoryId   String
+  category     Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  assignedById String
+  assignedBy   User     @relation("AssignedBy", fields: [assignedById], references: [id])
+  assignedAt   DateTime @default(now())
+  /// When true, only standard tools listed in `user_tool_allowances` for this category are visible.
+  /// When false, all standard tools in the category are allowed (rows for this category are cleared).
+  restrictStandardTools Boolean @default(false)
+
+  @@unique([userId, categoryId])
+  @@map("category_assignments")
+}
+
+model UserFavorite {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  toolId    String
+  tool      Tool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, toolId])
+  @@map("user_favorites")
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  toolId    String?
+  tool      Tool?    @relation(fields: [toolId], references: [id], onDelete: SetNull)
+  action    String
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+  @@map("activity_logs")
+}
+
+/// Persistent in-app notifications. Written by server-side events (access updates,
+/// status changes, etc.) and fetched by the client's bell panel on login.
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Matches `AccessNotifyPayload['type']` on the bus (`access_update` today).
+  type      String   @default("access_update")
+  /// Sub-category for the event (`categories`, `linked_tools`, `account`).
+  scope     String?
+  title     String
+  body      String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, read, createdAt])
+  @@map("notifications")
+}

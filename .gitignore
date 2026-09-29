@@ -1,0 +1,41 @@
+# Dependencies / build output
+node_modules/
+dist/
+build/
+.turbo/
+.next/
+*.tsbuildinfo
+backend/src/generated/
+
+# Env files and credentials (never commit)
+.env
+.env.*
+!.env.example
+*.bak
+deploy.ps1
+*.pem
+*.key
+*.p12
+*.pfx
+*.ppk
+id_rsa*
+id_ed25519*
+
+# Local databases
+postgres_data/
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+
+# Documentation (kept out of the repo)
+*.md
+!README.md
+API to Link Tool Interface with Ima.txt
+
+# Local editor / AI tool settings
+.claude/
+.cursor/

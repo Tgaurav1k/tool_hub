@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: "${DB_USER:-tools_user}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
+      POSTGRES_DB: "${DB_NAME:-toolsdb}"
+    volumes:
+      - toolhub_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-tools_user} -d ${DB_NAME:-toolsdb}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build:
+      context: .
+      args:
+        APP_PORT: "${PORT:-4000}"
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${DEPLOY_PORT:-1002}:${PORT:-4000}"
+    env_file:
+      - backend/.env
+    environment:
+      NODE_ENV: production
+      PORT: "${PORT:-4000}"
+      COOKIE_SECURE: "false"
+      CORS_ORIGINS: "http://${DEPLOY_HOST:-localhost}:${DEPLOY_PORT:-1002}"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  toolhub_pgdata:

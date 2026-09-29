@@ -1,0 +1,23 @@
+{
+  "name": "tool-hub",
+  "private": true,
+  "packageManager": "npm@11.11.1",
+  "workspaces": [
+    "frontend",
+    "packages/*",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "type-check": "turbo type-check",
+    "db:migrate": "npm run migrate --workspace=backend",
+    "db:seed": "npm run seed --workspace=backend",
+    "db:studio": "npm run studio --workspace=backend"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.0"
+  }
+}

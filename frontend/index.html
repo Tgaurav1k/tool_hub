@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link id="app-favicon" rel="icon" type="image/jpeg" href="/logo/WhatsApp%20Image%202026-04-16%20at%2016.36.14.jpeg" />
+    <link id="app-apple-icon" rel="apple-touch-icon" href="/logo/WhatsApp%20Image%202026-04-16%20at%2016.36.14.jpeg" />
+    <title>Tool HUB</title>
+    <script>
+      (function () {
+        var SRC = '/logo/WhatsApp%20Image%202026-04-16%20at%2016.36.14.jpeg'
+        var img = new Image()
+        img.onload = function () {
+          var size = 64
+          var c = document.createElement('canvas')
+          c.width = size; c.height = size
+          var ctx = c.getContext('2d')
+          ctx.save()
+          ctx.beginPath()
+          ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2)
+          ctx.closePath()
+          ctx.clip()
+          var s = Math.min(img.width, img.height)
+          var sx = (img.width - s) / 2
+          var sy = (img.height - s) / 2
+          ctx.drawImage(img, sx, sy, s, s, 0, 0, size, size)
+          ctx.restore()
+          var url = c.toDataURL('image/png')
+          var fav = document.getElementById('app-favicon')
+          if (fav) { fav.type = 'image/png'; fav.href = url }
+          var apple = document.getElementById('app-apple-icon')
+          if (apple) { apple.href = url }
+        }
+        img.src = SRC
+      })()
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

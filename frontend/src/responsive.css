@@ -1,0 +1,159 @@
+/*
+ * ToolHub — responsive layout overrides.
+ *
+ * The app styles its layout with inline `style={{…}}` objects, which encode the
+ * desktop design. This stylesheet adapts that layout down to tablet, phone and
+ * small-phone widths using class hooks (`tb-*`) placed on the layout containers.
+ * Because the desktop values are inline, these overrides use `!important` to win.
+ * Purely presentational — no markup or logic is changed.
+ *
+ * Breakpoints (desktop-first: widest → narrowest, so the narrower rule wins when
+ * more than one matches):
+ *   <= 1024px  tablets
+ *   <=  767px  phones (the Sidebar switches to an overlay drawer at this width)
+ *   <=  480px  small phones
+ */
+
+/* ── Base structural fix (all widths) ───────────────────────────────────────
+   The content column is a flex child (`flex: 1`). Its default `min-width: auto`
+   refuses to shrink below its content's width, so wide content (data tables,
+   long emails) would push the whole page wider than the viewport and cause
+   horizontal scrolling. `min-width: 0` lets it shrink to the viewport; the
+   `overflow-x: clip` contains any residual overflow. Clip (not hidden/auto)
+   keeps `overflow-y: visible`, so no scroll container is created and the
+   sticky TopBar keeps working. */
+.tb-main {
+  min-width: 0;
+  overflow-x: clip;
+}
+
+/* ── Tablets ─────────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  /* Tool catalogue grid: 3 → 2 columns. */
+  .tb-tool-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  /* KPI grid: 4 → 2 columns. */
+  .tb-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 16px !important;
+  }
+  /* Slightly tighter page padding on tablets. */
+  .tb-page {
+    padding: 20px 24px !important;
+  }
+}
+
+/* ── Phones (Sidebar becomes a drawer) ──────────────────────────────────── */
+@media (max-width: 767px) {
+  /* Main content sits flush — the sidebar is an overlay drawer, not a rail. */
+  .tb-main {
+    margin-left: 0 !important;
+  }
+
+  /* TopBar — a single tidy row: hamburger (fixed) on the left, search fills the
+     middle and shrinks as needed, bell + avatar pinned to the right. */
+  .tb-topbar {
+    padding: 10px 14px 10px 64px !important;
+    gap: 10px !important;
+    flex-wrap: nowrap !important;
+  }
+  /* Search grows to fill the row and may shrink to nothing (min-width: 0). */
+  .tb-topbar-search {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+  /* Actions cluster keeps its size and stays on the right. */
+  .tb-topbar-actions {
+    gap: 12px !important;
+    flex-shrink: 0 !important;
+  }
+  .tb-topbar-user-meta-name {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Page wrapper (main) — tighter padding. */
+  .tb-page {
+    padding: 16px !important;
+  }
+
+  /* KPI grid: → 2 columns. */
+  .tb-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+
+  /* Tool card grid: → single column. */
+  .tb-tool-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  /* Modal category chooser: 2 → 1 column. */
+  .tb-modal-cat-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Data tables scroll horizontally instead of crushing their columns. */
+  .tb-datatable-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tb-datatable {
+    min-width: 700px;
+  }
+
+  /* Page / section headings — a touch smaller. */
+  .tb-heading-lg {
+    font-size: 22px !important;
+  }
+
+  /* Filter row (favourites + category chips + actions) — allow stacking. */
+  .tb-filter-row {
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+
+  /* Tool-catalogue rows — tighter padding so more room for the name/description. */
+  .tb-tool-row {
+    padding: 14px 16px !important;
+    gap: 12px !important;
+  }
+
+  /* Profile card — smaller padding and a stacked header so the edit form
+     never forces horizontal scroll on narrow screens. */
+  .tb-profile-card {
+    padding: 20px !important;
+  }
+  .tb-profile-head {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+  }
+  .tb-profile-edit {
+    min-width: 0 !important;
+    width: 100%;
+  }
+}
+
+/* ── Small phones ───────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  /* KPI grid: → single column. */
+  .tb-kpi-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .tb-topbar {
+    padding: 10px 12px 10px 60px !important;
+  }
+  /* Hide the name/role block next to the avatar to save space. */
+  .tb-topbar-user-meta {
+    display: none !important;
+  }
+  .tb-page {
+    padding: 14px 12px !important;
+  }
+}

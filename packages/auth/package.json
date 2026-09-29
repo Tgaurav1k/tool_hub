@@ -1,0 +1,17 @@
+{
+  "name": "@toolhub/auth",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "@toolhub/config": "*"
+  },
+  "devDependencies": {
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "react-router-dom": "^6.23.0",
+    "typescript": "^5.4.0",
+    "@types/react": "^18.3.0"
+  }
+}

@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #F8F4EE;
+  -webkit-font-smoothing: antialiased;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Neutralize the browser's autofill background/text override so autofilled inputs
+   keep our design instead of the pale-blue/yellow tint. cardBg #FFFDF9, coffee800 #3E2E1E. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #FFFDF9 inset;
+  box-shadow: 0 0 0 1000px #FFFDF9 inset;
+  -webkit-text-fill-color: #3E2E1E;
+  caret-color: #3E2E1E;
+  transition: background-color 99999s ease-in-out 0s;
+}
